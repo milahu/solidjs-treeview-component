@@ -26,6 +26,7 @@ export default defineConfig({
     solidPlugin(),
   ],
   root: abspath('src/demo'),
+  base: "./", // relative paths to assets, to make work with github-pages
   //publicDir: abspath('public'),
   build: {
     target: "esnext",
