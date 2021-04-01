@@ -1,3 +1,5 @@
 # solidjs-treeview-component
 
-see [src/demo/App.jsx](src/demo/App.jsx)
+usage: [src/demo/App.jsx](src/demo/App.jsx)
+
+live demo: [https://milahu.github.io/solidjs-treeview-component/](https://milahu.github.io/solidjs-treeview-component/)
