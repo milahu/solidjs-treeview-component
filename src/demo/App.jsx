@@ -2,24 +2,45 @@ import { createState, onMount } from "solid-js";
 import { glob as globalStyle } from "solid-styled-components";
 
 import TreeView from "../../"; // -> package.json -> module -> src/TreeView.jsx
+import pkg from "../../package.json";
 
 // TODO better way to define style?
 // we need `node.classList.toggle('expand')`
 // but we dont care about the exact class name
+var className = 'linux-find';
 globalStyle(`
-  ul.tree-view.root { margin-left: 1px; margin-right: 1px; }
-  ul.tree-view.root { height: 100%; /* fit to container */; overflow: auto; /* scroll on demand */ }
-  ul.tree-view { text-align: left; }
-  ul.tree-view, ul.tree-view ul { list-style: none; padding: 0; }
-  ul.tree-view li { white-space: pre; /* dont wrap on x overflow. TODO fix width on overflow */ }
-  ul.tree-view li.branch > span { color: blue; font-family: monospace; }
-  ul.tree-view li.branch > ul { display: none; /* default collapsed */ }
-  ul.tree-view li.branch.expanded { outline: solid 1px grey; }
-  ul.tree-view li.branch.expanded > ul { display: block; }
-  ul.tree-view li.empty { font-style: italic; }
-  ul.tree-view span.link-source { color: green; font-family: monospace; }
-  ul.tree-view span.file { font-family: monospace; }
-  /* ul.tree-view span.prefix { opacity: 0.6; } */ /* this looks worse than expected */
+  .${className}.tree-view.root { margin-left: 1px; margin-right: 1px; }
+  .${className}.tree-view.root { height: 100%; /* fit to container */; overflow: auto; /* scroll on demand */ }
+  .${className}.tree-view { text-align: left; }
+  .${className}.tree-view ul,
+  .${className}.tree-view { list-style: none; padding: 0; }
+  .${className}.tree-view li { white-space: pre; /* dont wrap on x overflow. TODO fix width on overflow */ }
+  .${className}.tree-view li.branch > span { color: blue; font-family: monospace; }
+  .${className}.tree-view li.branch > ul { display: none; /* default collapsed */ }
+  .${className}.tree-view li.branch.expanded { outline: solid 1px grey; }
+  .${className}.tree-view li.branch.expanded > ul { display: block; }
+  .${className}.tree-view li.empty { font-style: italic; }
+  .${className}.tree-view span.link-source { color: green; font-family: monospace; }
+  .${className}.tree-view span.file { font-family: monospace; }
+  /* .${className}.tree-view span.prefix { opacity: 0.6; } */ /* this looks worse than expected */
+`);
+
+var className = 'file-tree';
+globalStyle(`
+  .${className}.tree-view.root { margin-left: 1px; margin-right: 1px; }
+  .${className}.tree-view.root { height: 100%; /* fit to container */; overflow: auto; /* scroll on demand */ }
+  .${className}.tree-view { text-align: left; }
+  .${className}.tree-view ul,
+  .${className}.tree-view { list-style: none; padding: 0; }
+  .${className}.tree-view ul { padding-left: 0.5em; margin-left: 0.5em; border-left: solid 1px grey; }
+  .${className}.tree-view li { white-space: pre; /* dont wrap on x overflow. TODO fix width on overflow */ }
+  .${className}.tree-view li.branch > span { color: blue; font-family: monospace; }
+  .${className}.tree-view li.branch > ul { display: none; /* default collapsed */ }
+  .${className}.tree-view li.branch.expanded {  }
+  .${className}.tree-view li.branch.expanded > ul { display: block; }
+  .${className}.tree-view li.empty { font-style: italic; }
+  .${className}.tree-view span.link-source { color: green; font-family: monospace; }
+  .${className}.tree-view span.file { font-family: monospace; }
 `);
 
 export default function App() {
@@ -75,8 +96,8 @@ export default function App() {
     console.log(`loadFiles path = /${path} + depth = ${depth} + prefix = ${prefix}`);
     const responseData = {
       files: Array.from({ length: 5 }).map((_, idx) => {
-        const typeList = 'ddfl'; // dir, file, link
-        const type = typeList[Math.round(Math.random() * 3)];
+        const typeList = 'dddfl'; // dir, file, link
+        const type = typeList[Math.round(Math.random() * (typeList.length - 1))];
         if (type == 'd') return [ depth, type, `dirr-${depth}-${idx}`, [] ];
         if (type == 'f') return [ depth, type, `file-${depth}-${idx}` ];
         if (type == 'l') return [ depth, type, `link-${depth}-${idx}`, `link-target-${depth}-${idx}` ];
@@ -122,16 +143,55 @@ export default function App() {
     return get;
   }
 
+  function fileTreeGetters() {
+    const get = fileListGetters();
+    const simplePath = (node, prefix) => (
+        <span class="name">{get.name(node)}</span>
+    );
+    get.branchLabel = simplePath;
+    get.branchLabel = simplePath;
+    const isLink = node => (node[1] == 'l');
+    const linkTarget = node => node[3];
+    get.leafLabel = (node, prefix) => {
+      if (isLink(node))
+        return <>
+          <span class="link-source">{simplePath(node, prefix)}</span>{" -> "}
+          <span class="link-target">{linkTarget(node)}</span>
+        </>;
+      return <span class="file" onClick={() => setState('fileSelected', get.path(node, prefix))}>{simplePath(node, prefix)}</span>;
+    };
+    return get;
+  }
+
   function fileListFilter() {
     return node => (node[2][0] != '.'); // hide dotfiles
   }
 
   return (
     <div>
+      <h2>demo for {pkg.name}</h2>
+      <div style="margin-bottom: 1em">source code: <a href={pkg.homepage}>{pkg.homepage}</a></div>
       <div>click on a directory to load more files</div>
-      <div>selected file: {state.fileSelected ? <code>{state.fileSelected}</code> : '( none. click a file to select )'}</div>
-      <div style="height: 12em">
-        <TreeView data={state.fileList} get={fileListGetters()} filter={fileListFilter()} load={loadFiles} />
+      <div>click on a file to select it. selected file: {state.fileSelected ? <code>{state.fileSelected}</code> : '( none )'}</div>
+      <h4>file tree, show only file names</h4>
+      <div style="height: 8em">{/* TODO use full height of browser window */}
+        <TreeView
+          data={state.fileList}
+          get={fileTreeGetters()}
+          filter={fileListFilter()}
+          load={loadFiles}
+          className="file-tree"
+        />
+      </div>
+      <h4>directory listing, show full file path, similar to the linux command <code>find -printf '%P\\n'</code></h4>
+      <div style="height: 8em">{/* TODO use full height of browser window */}
+        <TreeView
+          data={state.fileList}
+          get={fileListGetters()}
+          filter={fileListFilter()}
+          load={loadFiles}
+          className="linux-find"
+        />
       </div>
     </div>
   );
