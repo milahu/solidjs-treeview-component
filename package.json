@@ -27,5 +27,8 @@
     "file-browser",
     "file-explorer",
     "file-manager"
-  ]
+  ],
+  "homepage": "https://github.com/milahu/solidjs-treeview-component",
+  "repository": { "type": "git", "url": "https://github.com/milahu/solidjs-treeview-component.git" },
+  "bugs": "https://github.com/milahu/solidjs-treeview-component/issues"
 }
