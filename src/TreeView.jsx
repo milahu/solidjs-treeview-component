@@ -38,10 +38,9 @@ function BranchNode(props) {
         {props.get.branchLabel(props.node, props.prefix)}
       </span>
       {props.recurse({
+        ...props,
         data: childNodes(),
-        get: props.get,
         prefix: prefix(),
-        load: props.load,
       })}
     </li>
   );
@@ -50,7 +49,7 @@ function BranchNode(props) {
 const TreeView = function thisComponent(props) {
   const classNameExpanded = 'expanded';
   return (
-    <ul class={(() => (props.prefix ? 'tree-view' : 'tree-view root'))()}>
+    <ul class={(() => ('tree-view ' + (props.prefix ? '' : 'root ') + props.className))()}>
       <For each={props.filter ? props.data.filter(props.filter) : props.data} fallback={
         props.component?.empty ? props.component.empty(props) : EmptyNode(props)
       }>
