@@ -1,41 +1,77 @@
 import { For, Show } from "solid-js";
 
 // TODO add suspense: 'empty' vs 'loading ...' in <li class="empty">
+// TODO use array for prefix (then getting the depth is trivial, and we can remove depth from the data array)
 
-export default function TreeView(props) {
+function EmptyNode(props) {
+  return (
+    <li class="empty">
+      {props.get.emptyLabel(props.prefix)}
+    </li>
+  );
+}
+
+function LeafNode(props) {
+  return (
+    <li class="leaf">
+      {props.get.leafLabel(props.node, props.prefix)}
+    </li>
+  );
+}
+
+function BranchNode(props) {
+  const classNameExpanded = () => props.classNameExpanded || 'expanded';
+  const prefix = () => props.get.path(props.node, props.prefix);
+  const childNodes = () => props.get.childNodes(props.node);
+  return (
+    <li class="branch">
+      <span class="branch-label" onClick={event => {
+        // go up to nearest <li class="branch">
+        let li = event.target;
+        while (li && li.localName != 'li') li = li.parentNode;
+        if (!li) throw { error: 'li not found', event };
+        li.classList.toggle(classNameExpanded());
+        if (li.classList.contains(classNameExpanded())) {
+          props.load(props.node, props.prefix, props.get);
+        }
+      }}>
+        {props.get.branchLabel(props.node, props.prefix)}
+      </span>
+      {props.recurse({
+        data: childNodes(),
+        get: props.get,
+        prefix: prefix(),
+        load: props.load,
+      })}
+    </li>
+  );
+}
+
+const TreeView = function thisComponent(props) {
   const classNameExpanded = 'expanded';
   return (
     <ul class={(() => (props.prefix ? 'tree-view' : 'tree-view root'))()}>
       <For each={props.filter ? props.data.filter(props.filter) : props.data} fallback={
-        <li class="empty">{props.get.emptyLabel(props.prefix)}</li>
+        props.component?.empty ? props.component.empty(props) : EmptyNode(props)
       }>
-        {(node, idx) => (
-          <Show when={props.get.isLeaf(node)} fallback={
-            <li class="branch">
-              <span onClick={event => {
-                // go up to nearest <li class="branch">
-                let li = event.target;
-                while (li && li.localName != 'li') li = li.parentNode;
-                if (!li) throw { error: 'li not found', event };
-                li.classList.toggle(classNameExpanded);
-                if (li.classList.contains(classNameExpanded)) {
-                  props.load(node, props.prefix, props.get);
-                }
-              }}>
-                {props.get.branchLabel(node, props.prefix)}
-              </span>
-              <TreeView
-                data={props.get.childNodes(node)}
-                get={props.get}
-                prefix={props.get.path(node, props.prefix)}
-                load={props.load}
-              />
-            </li>
-          }>
-            <li class="leaf">{props.get.leafLabel(node, props.prefix)}</li>
-          </Show>
-        )}
+        {(node, nodeIdx) => {
+          const nodeProps = () => ({
+            ...props,
+            node,
+            nodeIdx,
+            recurse: thisComponent,
+          });
+          return (
+            <Show when={props.get.isLeaf(node)} fallback={
+              props.component?.branch ? props.component.branch(nodeProps()) : BranchNode(nodeProps())
+            }>
+              {props.component?.leaf ? props.component.leaf(nodeProps()) : LeafNode(nodeProps())}
+            </Show>
+          );
+        }}
       </For>
     </ul>
   );
 }
+
+export default TreeView;

@@ -1,7 +1,7 @@
 import { createState, onMount } from "solid-js";
 import { glob as globalStyle } from "solid-styled-components";
 
-import TreeView from "../../";
+import TreeView from "../../"; // -> package.json -> module -> src/TreeView.jsx
 
 // TODO better way to define style?
 // we need `node.classList.toggle('expand')`
@@ -41,20 +41,21 @@ export default function App() {
     const keyPath = ['fileList'];
     const childNodesIdx = 3;
     let parentDir = state.fileList;
+    console.log(`loadFiles build keyPath. prefix ${prefix}. path /${path}`);
     path.split('/').filter(Boolean).forEach((d, di) => {
       const i = parentDir.findIndex(([ depth, type, file, arg ]) => (type == 'd' && file == d));
+      console.log(`loadFiles build keyPath. depth ${di}`, { parentDir, i, d });
       keyPath.push(i); parentDir = parentDir[i];
       keyPath.push(childNodesIdx); parentDir = parentDir[childNodesIdx];
     });
 
     //console.dir({ prefix, keyPath, val: state(...keyPath) })
-    console.dir({ prefix, keyPath, parentDir })
+    //console.dir({ prefix, keyPath, parentDir })
 
-    //if (state(...keyPath).length > 0) return; // already loaded
     if (parentDir.length > 0) {
       console.log(`already loaded path /${path}`);
-      return;
-    }; // already loaded
+      return; // already loaded
+    };
 
     /*
     // load files from API server
@@ -70,12 +71,13 @@ export default function App() {
     */
     // mock the server response
     await sleep(500); // loading ...
+    const depth = path.split('/').filter(Boolean).length;
+    console.log(`loadFiles path = /${path} + depth = ${depth} + prefix = ${prefix}`);
     const responseData = {
       files: Array.from({ length: 5 }).map((_, idx) => {
         const typeList = 'ddfl'; // dir, file, link
         const type = typeList[Math.round(Math.random() * 3)];
-        const depth = prefix.split('/').length;
-        if (type == 'd') return [ depth, type, `directory-${depth}-${idx}`, [] ];
+        if (type == 'd') return [ depth, type, `dirr-${depth}-${idx}`, [] ];
         if (type == 'f') return [ depth, type, `file-${depth}-${idx}` ];
         if (type == 'l') return [ depth, type, `link-${depth}-${idx}`, `link-target-${depth}-${idx}` ];
       }),
@@ -95,7 +97,10 @@ export default function App() {
     get.isLeaf = node => (node[1] != 'd');
     get.name = node => node[2];
     get.path = (node, prefix) => prefix ? `${prefix}/${get.name(node)}` : get.name(node);
-    get.childNodes = node => node[3];
+    get.childNodes = node => {
+      //console.log('get.childNodes. node:', node)
+      return node[3];
+    };
     const fancyPath = (node, prefix) => (
       prefix ? <>
         <span class="prefix">{(() => prefix)()}/</span>
