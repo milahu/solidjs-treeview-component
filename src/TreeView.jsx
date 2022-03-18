@@ -25,7 +25,7 @@ function BranchNode(props) {
   const childNodes = () => props.get.childNodes(props.node);
   return (
     <li class="branch">
-      <span class="branch-label" onClick={event => {
+      <div class="branch-label" onClick={event => {
         // go up to nearest <li class="branch">
         let li = event.target;
         while (li && li.localName != 'li') li = li.parentNode;
@@ -36,7 +36,7 @@ function BranchNode(props) {
         }
       }}>
         {props.get.branchLabel(props.node, props.prefix)}
-      </span>
+      </div>
       {props.recurse({
         ...props,
         data: childNodes(),
