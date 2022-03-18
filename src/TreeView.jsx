@@ -32,7 +32,7 @@ function BranchNode(props) {
         if (!li) throw { error: 'li not found', event };
         li.classList.toggle(classNameExpanded());
         if (li.classList.contains(classNameExpanded())) {
-          props.load(props.node, props.prefix, props.get);
+          props.load && props.load(props.node, props.prefix, props.get);
         }
       }}>
         {props.get.branchLabel(props.node, props.prefix)}
