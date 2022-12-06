@@ -4,9 +4,7 @@ usage: [src/demo/App.jsx](src/demo/App.jsx)
 
 live demo: [https://milahu.github.io/solidjs-treeview-component/](https://milahu.github.io/solidjs-treeview-component/)
 
-## related
-
-### aria spec
+## aria spec
 
 https://www.w3.org/TR/wai-aria-practices/#TreeView
 
@@ -21,6 +19,8 @@ https://www.w3.org/TR/wai-aria-practices/#TreeView
 > can be expanded to reveal the contents of the folder,  
 > which may be files, folders, or both.
 
-### svelte
+## other treeview components
 
-a treeview component in svelte: https://svelte.dev/tutorial/svelte-self
+- https://github.com/aquaductape/solid-tree-view - a treeview component in solidjs
+- https://svelte.dev/tutorial/svelte-self - a treeview component in svelte
+- https://github.com/mar10/fancytree - a treeview component in jQuery
