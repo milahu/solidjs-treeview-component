@@ -1,20 +1,21 @@
 import { onMount } from "solid-js";
-import { createStore } from "solid-js/store";
+import { createStore, unwrap } from "solid-js/store";
 import { glob as globalStyle } from "solid-styled-components";
 
 import TreeView from "../../"; // -> package.json -> module -> src/TreeView.jsx
 import pkg from "../../package.json";
 
 // TODO better way to define style?
+var globalStyleString = "";
 // we need `node.classList.toggle('expand')`
 // but we dont care about the exact class name
 var className = 'linux-find';
-globalStyle(`
+globalStyleString += `
   .${className}.tree-view.root { margin-left: 1px; margin-right: 1px; }
   .${className}.tree-view.root { height: 100%; /* fit to container */; overflow: auto; /* scroll on demand */ }
   .${className}.tree-view { text-align: left; }
-  .${className}.tree-view ul,
-  .${className}.tree-view { list-style: none; padding: 0; }
+  .${className}.tree-view,
+  .${className}.tree-view ul { list-style: none; padding: 0; }
   .${className}.tree-view li { white-space: pre; /* dont wrap on x overflow. TODO fix width on overflow */ }
   .${className}.tree-view li.branch > span { color: blue; font-family: monospace; }
   .${className}.tree-view li.branch > ul { display: none; /* default collapsed */ }
@@ -22,17 +23,20 @@ globalStyle(`
   .${className}.tree-view li.branch.expanded > ul { display: block; }
   .${className}.tree-view li.empty { font-style: italic; }
   .${className}.tree-view span.link-source { color: green; font-family: monospace; }
-  .${className}.tree-view span.file { font-family: monospace; }
+  .${className}.tree-view div.branch-label,
+  .${className}.tree-view span.file,
+  .${className}.tree-view span.name,
+  .${className}.tree-view span.prefix { font-family: monospace; }
   /* .${className}.tree-view span.prefix { opacity: 0.6; } */ /* this looks worse than expected */
-`);
+`;
 
 var className = 'file-tree';
-globalStyle(`
+globalStyleString += `
   .${className}.tree-view.root { margin-left: 1px; margin-right: 1px; }
   .${className}.tree-view.root { height: 100%; /* fit to container */; overflow: auto; /* scroll on demand */ }
   .${className}.tree-view { text-align: left; }
-  .${className}.tree-view ul,
-  .${className}.tree-view { list-style: none; padding: 0; }
+  .${className}.tree-view,
+  .${className}.tree-view ul { list-style: none; padding: 0; }
   .${className}.tree-view ul { padding-left: 0.5em; margin-left: 0.5em; border-left: solid 1px grey; }
   .${className}.tree-view li { white-space: pre; /* dont wrap on x overflow. TODO fix width on overflow */ }
   .${className}.tree-view li.branch > span { color: blue; font-family: monospace; }
@@ -42,7 +46,11 @@ globalStyle(`
   .${className}.tree-view li.empty { font-style: italic; }
   .${className}.tree-view span.link-source { color: green; font-family: monospace; }
   .${className}.tree-view span.file { font-family: monospace; }
-`);
+  .${className}.tree-view span.name { font-family: monospace; }
+`;
+
+// workaround: only one call to globalStyle
+globalStyle(globalStyleString);
 
 export default function App() {
 
@@ -57,13 +65,17 @@ export default function App() {
     loadFiles();
   });
 
+  //const rootPath = "";
+  const rootPath = "/"; // needed for fs.readdir
+
   async function loadFiles(node = null, prefix = '', get = null) {
-    const path = (node && get) ? get.path(node, prefix) : '';
+    console.log("loadFiles node", unwrap(node));
+    const path = (node && get) ? get.path(node, prefix) : rootPath;
 
     const keyPath = ['fileList'];
     const childNodesIdx = 3;
     let parentDir = state.fileList;
-    console.log(`loadFiles build keyPath. prefix ${prefix}. path /${path}`);
+    console.log(`loadFiles build keyPath. prefix "${prefix}" + path "${path}"`);
     path.split('/').filter(Boolean).forEach((d, di) => {
       const i = parentDir.findIndex(([ depth, type, file, arg ]) => (type == 'd' && file == d));
       console.log(`loadFiles build keyPath. depth ${di}`, { parentDir, i, d });
@@ -75,7 +87,7 @@ export default function App() {
     //console.dir({ prefix, keyPath, parentDir })
 
     if (parentDir.length > 0) {
-      console.log(`already loaded path /${path}`);
+      console.log(`already loaded path "${path}"`);
       return; // already loaded
     };
 
@@ -94,7 +106,7 @@ export default function App() {
     // mock the server response
     await sleep(500); // loading ...
     const depth = path.split('/').filter(Boolean).length;
-    console.log(`loadFiles path = /${path} + depth = ${depth} + prefix = ${prefix}`);
+    console.log(`loadFiles path = "${path}" + depth "${depth}" + prefix "${prefix}"`);
     const responseData = {
       files: Array.from({ length: 5 }).map((_, idx) => {
         const typeList = 'dddfl'; // dir, file, link
@@ -117,29 +129,29 @@ export default function App() {
   function fileListGetters() {
     const get = {};
     get.isLeaf = node => (node[1] != 'd');
-    get.name = node => node[2];
-    get.path = (node, prefix) => prefix ? `${prefix}/${get.name(node)}` : get.name(node);
-    get.childNodes = node => {
-      //console.log('get.childNodes. node:', node)
-      return node[3];
-    };
+    //get.name = node => node[2];
+    // append slash to directory names
+    get.name = node => node[2] + ((node[1] == 'd') ? "/" : "");
+    get.path = (node, prefix) => (prefix || rootPath) + get.name(node);
+    get.childNodes = node => node[3];
     const fancyPath = (node, prefix) => (
       prefix ? <>
-        <span class="prefix">{(() => prefix)()}/</span>
+        <span class="prefix">{(() => prefix)()}</span>
         <span class="name">{get.name(node)}</span>
-      </> : get.name(node)
+      </> : (rootPath + get.name(node))
     );
     get.branchLabel = fancyPath;
     get.emptyLabel = (prefix) => '( empty )';
     const isLink = node => (node[1] == 'l');
     const linkTarget = node => node[3];
+    const getSelectFile = (node, prefix) => () => setState('fileSelected', get.path(node, prefix));
     get.leafLabel = (node, prefix) => {
       if (isLink(node))
         return <>
-          <span class="link-source">{fancyPath(node, prefix)}</span>{" -> "}
+          <span class="link-source" onClick={getSelectFile(node, prefix)}>{fancyPath(node, prefix)}</span>{" -> "}
           <span class="link-target">{linkTarget(node)}</span>
         </>;
-      return <span class="file" onClick={() => setState('fileSelected', get.path(node, prefix))}>{fancyPath(node, prefix)}</span>;
+      return <span class="file" onClick={getSelectFile(node, prefix)}>{fancyPath(node, prefix)}</span>;
     };
     return get;
   }
@@ -147,12 +159,11 @@ export default function App() {
   function fileTreeGetters() {
     const get = {};
     get.isLeaf = node => (node[1] != 'd');
-    get.name = node => node[2];
-    get.path = (node, prefix) => prefix ? `${prefix}/${get.name(node)}` : get.name(node);
-    get.childNodes = node => {
-      //console.log('get.childNodes. node:', node)
-      return node[3];
-    };
+    //get.name = node => node[2];
+    // append slash to directory names
+    get.name = node => node[2] + ((node[1] == 'd') ? "/" : "");
+    get.path = (node, prefix) => (prefix || rootPath) + get.name(node);
+    get.childNodes = node => node[3];
     get.emptyLabel = (_prefix) => '( empty )';
     const isLink = node => (node[1] == 'l');
     const linkTarget = node => node[3];
@@ -160,13 +171,14 @@ export default function App() {
       <span class="name">{get.name(node)}</span>
     );
     get.branchLabel = simplePath;
+    const getSelectFile = (node, prefix) => () => setState('fileSelected', get.path(node, prefix));
     get.leafLabel = (node, prefix) => {
       if (isLink(node))
         return <>
-          <span class="link-source">{simplePath(node, prefix)}</span>{" -> "}
+          <span class="link-source" onClick={getSelectFile(node, prefix)}>{simplePath(node, prefix)}</span>{" -> "}
           <span class="link-target">{linkTarget(node)}</span>
         </>;
-      return <span class="file" onClick={() => setState('fileSelected', get.path(node, prefix))}>{simplePath(node, prefix)}</span>;
+      return <span class="file" onClick={getSelectFile(node, prefix)}>{simplePath(node, prefix)}</span>;
     };
     return get;
   }

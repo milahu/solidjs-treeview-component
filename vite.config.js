@@ -1,47 +1,36 @@
-/*
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
 
-export default defineConfig({
-  plugins: [solidPlugin()],
-  build: {
-    target: "esnext",
-    polyfillDynamicImport: false,
-  },
-  server: {
-  	open: true, // open app in browser
-  }
-});
-*/
+const assetsDir = '';
+//const assetsDir = 'assets/';
 
-import { defineConfig } from "vite";
-import { resolve } from "path";
-import solidPlugin from "vite-plugin-solid";
-
-const abspath = relpath => resolve(__dirname, relpath);
+const outputDefaults = {
+  // remove hashes from filenames
+  entryFileNames: `${assetsDir}[name].js`,
+  chunkFileNames: `${assetsDir}[name].js`,
+  assetFileNames: `${assetsDir}[name].[ext]`,
+}
 
 export default defineConfig({
 
   plugins: [
     solidPlugin(),
   ],
-  root: abspath('src/demo'),
-  base: "./", // relative paths to assets, to make work with github-pages
-  //publicDir: abspath('public'),
+  root: "src/demo",
+  base: "./", // relative paths for github-pages
   build: {
     target: "esnext",
     polyfillDynamicImport: false,
-    outDir: abspath('dist'),
+    outDir: "dist",
     emptyOutDir: true, // force clean
-    assetsDir: '',
     rollupOptions: {
-      input: {
-        'demo': abspath('src/demo/index.html'),
+      output: {
+        ...outputDefaults,
       }
     },
   },
   server: {
-    //open: '/src/demo/index.html',
-    open: true,
+    //open: true,
   },
+  clearScreen: false,
 });
