@@ -145,14 +145,21 @@ export default function App() {
   }
 
   function fileTreeGetters() {
-    const get = fileListGetters();
-    const simplePath = (node, prefix) => (
-        <span class="name">{get.name(node)}</span>
-    );
-    get.branchLabel = simplePath;
-    get.branchLabel = simplePath;
+    const get = {};
+    get.isLeaf = node => (node[1] != 'd');
+    get.name = node => node[2];
+    get.path = (node, prefix) => prefix ? `${prefix}/${get.name(node)}` : get.name(node);
+    get.childNodes = node => {
+      //console.log('get.childNodes. node:', node)
+      return node[3];
+    };
+    get.emptyLabel = (_prefix) => '( empty )';
     const isLink = node => (node[1] == 'l');
     const linkTarget = node => node[3];
+    const simplePath = (node, _prefix) => (
+      <span class="name">{get.name(node)}</span>
+    );
+    get.branchLabel = simplePath;
     get.leafLabel = (node, prefix) => {
       if (isLink(node))
         return <>
