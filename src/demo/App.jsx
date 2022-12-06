@@ -116,6 +116,30 @@ export default function App() {
         if (type == 'l') return [ depth, type, `link-${depth}-${idx}`, `link-target-${depth}-${idx}` ];
       }),
     }
+    /*
+    // load files from fs
+    // TODO update on changes in fs. inotify?
+    const depth = path.split('/').filter(Boolean).length;
+    console.log(`loadFiles path = "${path}" + depth "${depth}" + prefix "${prefix}"`);
+    const dirFiles = await fs.promises.readdir(path || "/");
+    console.log("dirFiles", dirFiles);
+    const responseData = {
+      files: await Promise.all(dirFiles.map(async (fileName) => {
+        const filePath = path + "/" + fileName;
+        const stats = await fs.promises.stat(filePath);
+        if (stats.isDirectory()) {
+          return [ depth, "d", fileName, [] ];
+        }
+        else if (stats.isSymbolicLink()) {
+          const linkTarget = await fs.promises.readlink(filePath);
+          return [ depth, "l", fileName, linkTarget ];
+        }
+        else {
+          return [ depth, "f", fileName ];
+        }
+      })),
+    };
+    */
 
     // add new files to the app state
     if (!state.fileList || state.fileList.length == 0)
