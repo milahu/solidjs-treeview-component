@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "TreeView component for SolidJS",
   "scripts": {
-    "start": "vite --clearScreen false",
+    "dev": "vite --clearScreen false",
     "build": "vite build"
   },
   "module": "src/TreeView.jsx",
