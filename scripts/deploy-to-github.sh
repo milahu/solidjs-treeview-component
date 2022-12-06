@@ -21,7 +21,7 @@ git switch gh-pages || createGhPages
 trap "git switch ${branchName}" EXIT # on error, return to last branch
 
 $hasOldFiles && rm -v *.js
-cp -v dist/* ./
+cp -v src/demo/dist/* ./
 
 git add --verbose index.html *.js
 git commit --message="gh-pages: sync with ${branchName} ${headCommit}" --edit
