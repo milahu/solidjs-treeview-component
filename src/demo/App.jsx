@@ -1,4 +1,5 @@
-import { createState, onMount } from "solid-js";
+import { onMount } from "solid-js";
+import { createStore } from "solid-js/store";
 import { glob as globalStyle } from "solid-styled-components";
 
 import TreeView from "../../"; // -> package.json -> module -> src/TreeView.jsx
@@ -47,7 +48,7 @@ export default function App() {
 
   const sleep = ms => new Promise(res => setTimeout(res, ms));
 
-  const [state, setState] = createState({
+  const [state, setState] = createStore({
     fileList: [],
     fileSelected: '',
   });
