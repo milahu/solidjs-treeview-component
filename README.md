@@ -22,5 +22,11 @@ https://www.w3.org/TR/wai-aria-practices/#TreeView
 ## other treeview components
 
 - https://github.com/aquaductape/solid-tree-view - a treeview component in solidjs
+  - https://www.reddit.com/r/solidjs/comments/jitfj4/recreated_redux_tree_view_example_with_solid/
 - https://svelte.dev/tutorial/svelte-self - a treeview component in svelte
 - https://github.com/mar10/fancytree - a treeview component in jQuery
+
+## solidjs docs
+
+- https://github.com/solidjs/solid/discussions/499 - efficiently render tree structures, how to update nodes in tree
+- https://www.solidjs.com/tutorial/stores_nested_reactivity - One of the reasons for fine-grained reactivity in Solid is that it can handle nested updates independently
