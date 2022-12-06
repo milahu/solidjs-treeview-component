@@ -22,11 +22,12 @@ globalStyleString += `
   .${className}.tree-view li.branch.expanded { outline: solid 1px grey; }
   .${className}.tree-view li.branch.expanded > ul { display: block; }
   .${className}.tree-view li.empty { font-style: italic; }
-  .${className}.tree-view span.link-source { color: green; font-family: monospace; }
+  .${className}.tree-view span.link-source { color: green; }
+  .${className}.tree-view span.link-source,
   .${className}.tree-view div.branch-label,
   .${className}.tree-view span.file,
   .${className}.tree-view span.name,
-  .${className}.tree-view span.prefix { font-family: monospace; }
+  .${className}.tree-view span.prefix { font-family: monospace; cursor: pointer; }
   /* .${className}.tree-view span.prefix { opacity: 0.6; } */ /* this looks worse than expected */
 `;
 
@@ -44,9 +45,11 @@ globalStyleString += `
   .${className}.tree-view li.branch.expanded {  }
   .${className}.tree-view li.branch.expanded > ul { display: block; }
   .${className}.tree-view li.empty { font-style: italic; }
-  .${className}.tree-view span.link-source { color: green; font-family: monospace; }
-  .${className}.tree-view span.file { font-family: monospace; }
-  .${className}.tree-view span.name { font-family: monospace; }
+  .${className}.tree-view span.link-source { color: green; }
+  .${className}.tree-view span.link-source,
+  .${className}.tree-view div.branch-label,
+  .${className}.tree-view span.file,
+  .${className}.tree-view span.name { font-family: monospace; cursor: pointer; }
 `;
 
 // workaround: only one call to globalStyle
